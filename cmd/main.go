@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -9,6 +11,7 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v2"
+	"github.com/v8platform/ras-grpc-gw/pkg/health"
 	"github.com/v8platform/ras-grpc-gw/pkg/logger"
 	ras "github.com/v8platform/ras-grpc-gw/pkg/server"
 	"go.uber.org/zap"
@@ -55,6 +58,12 @@ func main() {
 				Value: ":3002",
 				Usage: "host:port to bind grpc server",
 			},
+			&cli.StringFlag{
+				Name:    "health",
+				Value:   "0.0.0.0:8080",
+				Usage:   "HTTP health check server address",
+				EnvVars: []string{"HEALTH_ADDR"},
+			},
 		},
 		Action: runServer,
 	}
@@ -71,23 +80,35 @@ func runServer(c *cli.Context) error {
 	}
 
 	bindAddr := c.String("bind")
+	healthAddr := c.String("health")
 
 	logger.Log.Info("Configuration",
 		zap.String("ras_addr", rasAddr),
 		zap.String("bind_addr", bindAddr),
+		zap.String("health_addr", healthAddr),
 	)
 
-	// Создание сервера
+	// Создание gRPC сервера
 	server := ras.NewRASServer(rasAddr)
 
-	// Канал для ошибок сервера
-	serverErrors := make(chan error, 1)
+	// Создание HTTP health check сервера
+	healthSrv := health.NewServer(healthAddr, server)
 
-	// Запуск сервера в горутине
+	// Канал для ошибок серверов
+	serverErrors := make(chan error, 2)
+
+	// Запуск gRPC сервера
 	go func() {
 		logger.Log.Info("Starting gRPC server", zap.String("address", bindAddr))
 		if err := server.Serve(bindAddr); err != nil {
-			serverErrors <- err
+			serverErrors <- fmt.Errorf("gRPC server error: %w", err)
+		}
+	}()
+
+	// Запуск HTTP health check сервера
+	go func() {
+		if err := healthSrv.Start(); err != nil && err != http.ErrServerClosed {
+			serverErrors <- fmt.Errorf("health server error: %w", err)
 		}
 	}()
 
@@ -108,14 +129,21 @@ func runServer(c *cli.Context) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		// Остановка сервера
-		logger.Log.Info("Shutting down server gracefully...")
+		// Остановка обоих серверов
+		logger.Log.Info("Shutting down servers gracefully...")
+
+		// Остановка health сервера
+		if err := healthSrv.Shutdown(ctx); err != nil {
+			logger.Log.Error("Error shutting down health server", zap.Error(err))
+		}
+
+		// Остановка gRPC сервера
 		if err := server.GracefulStop(ctx); err != nil {
-			logger.Log.Error("Error during shutdown", zap.Error(err))
+			logger.Log.Error("Error shutting down gRPC server", zap.Error(err))
 			return err
 		}
 
-		logger.Log.Info("Server stopped successfully")
+		logger.Log.Info("Servers stopped successfully")
 	}
 
 	return nil

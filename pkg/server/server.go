@@ -102,6 +102,27 @@ func (s *RASServer) GracefulStop(ctx context.Context) error {
 	return nil
 }
 
+// Check проверяет подключение к RAS серверу
+func (s *RASServer) Check(ctx context.Context) error {
+	// TODO: Реализовать реальную проверку подключения к RAS
+	// Пока что заглушка, которая всегда возвращает успех
+
+	// В будущем здесь должна быть проверка:
+	// - Подключение к RAS серверу доступно
+	// - Можно выполнить простой запрос (например, получить список кластеров)
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		// Проверка что RAS адрес установлен
+		if s.rasAddr == "" {
+			return fmt.Errorf("RAS address not configured")
+		}
+		return nil
+	}
+}
+
 func NewRasClientServiceServer(rasAddr string) ras_service.RASServiceServer {
 	return &rasClientServiceServer{
 		client: client.NewClientConn(rasAddr),
