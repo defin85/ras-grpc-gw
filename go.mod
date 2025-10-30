@@ -7,6 +7,7 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/v8platform/protos v0.2.0
+	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 )
@@ -21,6 +22,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/v8platform/encoder v0.0.3 // indirect
 	github.com/v8platform/protoc-gen-go-ras v0.0.0-20210902165457-013367855358 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
 	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273 // indirect
 	golang.org/x/text v0.3.6 // indirect
