@@ -1,10 +1,9 @@
 module github.com/v8platform/ras-grpc-gw
 
-go 1.17
+go 1.24
 
 require (
 	github.com/lithammer/shortuuid/v3 v3.0.7
-	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cast v1.4.1
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/v8platform/protos v0.2.0
@@ -18,6 +17,7 @@ require (
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/v8platform/encoder v0.0.3 // indirect
 	github.com/v8platform/protoc-gen-go-ras v0.0.0-20210902165457-013367855358 // indirect
