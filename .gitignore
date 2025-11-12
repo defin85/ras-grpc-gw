@@ -7,3 +7,11 @@ dist
 .idea
 *.logs
 
+
+# Protobuf generated files
+*.pb.go
+*_grpc.pb.go
+
+# Backup files
+*.bak
+*.tmp

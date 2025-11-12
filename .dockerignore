@@ -1,0 +1,39 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+ras-grpc-gw
+ras-grpc-gw.exe
+
+# Test files
+*.test
+*.out
+coverage.html
+coverage.out
+coverage_*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+
+# Git
+.git
+.gitignore
+.github/
+
+# Docs
+readme.md
+TESTING_REPORT.md
+TODO
+docs/
+
+# Tests
+tests/
+
+# Build artifacts
+bin/

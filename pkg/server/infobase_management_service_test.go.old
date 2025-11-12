@@ -1,0 +1,1213 @@
+package server
+
+import (
+	"context"
+	"testing"
+
+	pb "github.com/v8platform/ras-grpc-gw/pkg/gen/infobase/service"
+	"github.com/v8platform/ras-grpc-gw/pkg/logger"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+func init() {
+	_ = logger.Init(false)
+}
+
+// ==================== HELPER FUNCTIONS TESTS ====================
+
+func TestValidateClusterId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name      string
+		clusterId string
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name:      "valid cluster_id",
+			clusterId: "550e8400-e29b-41d4-a716-446655440000",
+			wantErr:   false,
+		},
+		{
+			name:      "empty cluster_id",
+			clusterId: "",
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name:      "whitespace only",
+			clusterId: "   ",
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name:      "valid short name",
+			clusterId: "cluster1",
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.validateClusterId(tt.clusterId)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateClusterId() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("validateClusterId() error is not gRPC status: %v", err)
+					return
+				}
+				if st.Code() != tt.wantCode {
+					t.Errorf("validateClusterId() code = %v, want %v", st.Code(), tt.wantCode)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateInfobaseId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name       string
+		infobaseId string
+		wantErr    bool
+		wantCode   codes.Code
+	}{
+		{
+			name:       "valid infobase_id",
+			infobaseId: "660e8400-e29b-41d4-a716-446655440000",
+			wantErr:    false,
+		},
+		{
+			name:       "empty infobase_id",
+			infobaseId: "",
+			wantErr:    true,
+			wantCode:   codes.InvalidArgument,
+		},
+		{
+			name:       "whitespace only",
+			infobaseId: "   ",
+			wantErr:    true,
+			wantCode:   codes.InvalidArgument,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.validateInfobaseId(tt.infobaseId)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateInfobaseId() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("validateInfobaseId() error is not gRPC status: %v", err)
+					return
+				}
+				if st.Code() != tt.wantCode {
+					t.Errorf("validateInfobaseId() code = %v, want %v", st.Code(), tt.wantCode)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateName(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name      string
+		inputName string
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name:      "valid name",
+			inputName: "TestInfobase",
+			wantErr:   false,
+		},
+		{
+			name:      "empty name",
+			inputName: "",
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name:      "whitespace only",
+			inputName: "   ",
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name:      "name with spaces",
+			inputName: "Test Infobase Name",
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.validateName(tt.inputName)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("validateName() error is not gRPC status: %v", err)
+					return
+				}
+				if st.Code() != tt.wantCode {
+					t.Errorf("validateName() code = %v, want %v", st.Code(), tt.wantCode)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateDBMS(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name     string
+		dbmsType pb.DBMSType
+		wantErr  bool
+		wantCode codes.Code
+	}{
+		{
+			name:     "PostgreSQL",
+			dbmsType: pb.DBMSType_DBMS_TYPE_POSTGRESQL,
+			wantErr:  false,
+		},
+		{
+			name:     "MSSQLServer",
+			dbmsType: pb.DBMSType_DBMS_TYPE_MSSQL_SERVER,
+			wantErr:  false,
+		},
+		{
+			name:     "UNSPECIFIED",
+			dbmsType: pb.DBMSType_DBMS_TYPE_UNSPECIFIED,
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.validateDBMS(tt.dbmsType)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateDBMS() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("validateDBMS() error is not gRPC status: %v", err)
+					return
+				}
+				if st.Code() != tt.wantCode {
+					t.Errorf("validateDBMS() code = %v, want %v", st.Code(), tt.wantCode)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateServerDBMSFields(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name      string
+		dbServer  string
+		dbName    string
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name:     "valid both fields",
+			dbServer: "localhost",
+			dbName:   "accounting",
+			wantErr:  false,
+		},
+		{
+			name:     "empty db_server",
+			dbServer: "",
+			dbName:   "accounting",
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "empty db_name",
+			dbServer: "localhost",
+			dbName:   "",
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "both empty",
+			dbServer: "",
+			dbName:   "",
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.validateServerDBMSFields(tt.dbServer, tt.dbName)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateServerDBMSFields() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("validateServerDBMSFields() error is not gRPC status: %v", err)
+					return
+				}
+				if st.Code() != tt.wantCode {
+					t.Errorf("validateServerDBMSFields() code = %v, want %v", st.Code(), tt.wantCode)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateDropMode(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name     string
+		dropMode pb.DropMode
+		wantErr  bool
+		wantCode codes.Code
+	}{
+		{
+			name:     "DROP_MODE_DROP_DATABASE",
+			dropMode: pb.DropMode_DROP_MODE_DROP_DATABASE,
+			wantErr:  false,
+		},
+		{
+			name:     "DROP_MODE_UNREGISTER_ONLY",
+			dropMode: pb.DropMode_DROP_MODE_UNREGISTER_ONLY,
+			wantErr:  false,
+		},
+		{
+			name:     "DROP_MODE_CLEAR_DATABASE",
+			dropMode: pb.DropMode_DROP_MODE_CLEAR_DATABASE,
+			wantErr:  false,
+		},
+		{
+			name:     "DROP_MODE_UNSPECIFIED",
+			dropMode: pb.DropMode_DROP_MODE_UNSPECIFIED,
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.validateDropMode(tt.dropMode)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateDropMode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("validateDropMode() error is not gRPC status: %v", err)
+					return
+				}
+				if st.Code() != tt.wantCode {
+					t.Errorf("validateDropMode() code = %v, want %v", st.Code(), tt.wantCode)
+				}
+			}
+		})
+	}
+}
+
+func TestMapRASError(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	tests := []struct {
+		name       string
+		rasError   error
+		wantCode   codes.Code
+		wantMsg    string
+	}{
+		{
+			name:     "nil error",
+			rasError: nil,
+			wantCode: codes.OK,
+		},
+		{
+			name:     "not found error",
+			rasError: newTestError("infobase not found"),
+			wantCode: codes.NotFound,
+			wantMsg:  "infobase not found",
+		},
+		{
+			name:     "access denied error",
+			rasError: newTestError("access denied: insufficient privileges"),
+			wantCode: codes.PermissionDenied,
+			wantMsg:  "access denied",
+		},
+		{
+			name:     "already exists error",
+			rasError: newTestError("infobase already exists"),
+			wantCode: codes.AlreadyExists,
+			wantMsg:  "already exists",
+		},
+		{
+			name:     "unknown error",
+			rasError: newTestError("something went wrong"),
+			wantCode: codes.Internal,
+			wantMsg:  "RAS error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := srv.mapRASError(tt.rasError)
+
+			if tt.rasError == nil {
+				if err != nil {
+					t.Errorf("mapRASError(nil) should return nil, got %v", err)
+				}
+				return
+			}
+
+			st, ok := status.FromError(err)
+			if !ok {
+				t.Errorf("mapRASError() error is not gRPC status: %v", err)
+				return
+			}
+
+			if st.Code() != tt.wantCode {
+				t.Errorf("mapRASError() code = %v, want %v", st.Code(), tt.wantCode)
+			}
+		})
+	}
+}
+
+func TestSanitizePassword(t *testing.T) {
+	tests := []struct {
+		name     string
+		password string
+		want     string
+	}{
+		{
+			name:     "empty password",
+			password: "",
+			want:     "<empty>",
+		},
+		{
+			name:     "non-empty password",
+			password: "secret123",
+			want:     "<provided>",
+		},
+		{
+			name:     "long password",
+			password: "very-long-secure-password-with-special-chars!@#$%",
+			want:     "<provided>",
+		},
+		{
+			name:     "single character",
+			password: "a",
+			want:     "<provided>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := sanitizePassword(tt.password)
+			if got != tt.want {
+				t.Errorf("sanitizePassword(%q) = %q, want %q", tt.password, got, tt.want)
+			}
+		})
+	}
+}
+
+// ==================== GRPC METHODS TESTS ====================
+
+func TestCreateInfobase_Success(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	dbPassword := "password123"
+	req := &pb.CreateInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		Name:       "TestInfobase",
+		Dbms:       pb.DBMSType_DBMS_TYPE_POSTGRESQL,
+		DbServer:   "localhost",
+		DbName:     "accounting_db",
+		DbUser:     stringPtr("postgres"),
+		DbPassword: &dbPassword,
+	}
+
+	ctx := context.Background()
+	resp, err := srv.CreateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("CreateInfobase() should return error when not implemented")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("CreateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.Unimplemented {
+		t.Errorf("CreateInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+	}
+
+	if resp != nil {
+		t.Errorf("CreateInfobase() response should be nil when unimplemented, got %v", resp)
+	}
+}
+
+func TestCreateInfobase_EmptyClusterId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.CreateInfobaseRequest{
+		ClusterId: "",
+		Name:      "TestInfobase",
+		Dbms:      pb.DBMSType_DBMS_TYPE_POSTGRESQL,
+		DbServer:  "localhost",
+		DbName:    "accounting_db",
+	}
+
+	ctx := context.Background()
+	_, err := srv.CreateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("CreateInfobase() with empty cluster_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("CreateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("CreateInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestCreateInfobase_EmptyName(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.CreateInfobaseRequest{
+		ClusterId: "550e8400-e29b-41d4-a716-446655440000",
+		Name:      "",
+		Dbms:      pb.DBMSType_DBMS_TYPE_POSTGRESQL,
+		DbServer:  "localhost",
+		DbName:    "accounting_db",
+	}
+
+	ctx := context.Background()
+	_, err := srv.CreateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("CreateInfobase() with empty name should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("CreateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("CreateInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestCreateInfobase_UnspecifiedDBMS(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.CreateInfobaseRequest{
+		ClusterId: "550e8400-e29b-41d4-a716-446655440000",
+		Name:      "TestInfobase",
+		Dbms:      pb.DBMSType_DBMS_TYPE_UNSPECIFIED,
+		DbServer:  "localhost",
+		DbName:    "accounting_db",
+	}
+
+	ctx := context.Background()
+	_, err := srv.CreateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("CreateInfobase() with UNSPECIFIED DBMS should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("CreateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("CreateInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestCreateInfobase_MissingDbServer(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.CreateInfobaseRequest{
+		ClusterId: "550e8400-e29b-41d4-a716-446655440000",
+		Name:      "TestInfobase",
+		Dbms:      pb.DBMSType_DBMS_TYPE_POSTGRESQL,
+		DbServer:  "",
+		DbName:    "accounting_db",
+	}
+
+	ctx := context.Background()
+	_, err := srv.CreateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("CreateInfobase() with empty db_server should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("CreateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("CreateInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestCreateInfobase_PasswordSanitization(t *testing.T) {
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zap.New(core)
+
+	srv := &InfobaseManagementServer{
+		logger: logger,
+	}
+
+	dbPassword := "secret-password-123"
+	req := &pb.CreateInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		Name:       "TestInfobase",
+		Dbms:       pb.DBMSType_DBMS_TYPE_POSTGRESQL,
+		DbServer:   "localhost",
+		DbName:     "accounting_db",
+		DbPassword: &dbPassword,
+	}
+
+	ctx := context.Background()
+	_, _ = srv.CreateInfobase(ctx, req)
+
+	allLogs := logs.All()
+	if len(allLogs) == 0 {
+		t.Error("CreateInfobase() should create logs")
+		return
+	}
+
+	for _, logEntry := range allLogs {
+		if logEntry.Message == "CreateInfobase request" {
+			found := false
+			for _, field := range logEntry.Context {
+				if field.Key == "db_password" {
+					if field.String == "secret-password-123" {
+						t.Error("CreateInfobase() logs contain plaintext password")
+					}
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Error("CreateInfobase() logs should contain db_password field")
+			}
+		}
+	}
+}
+
+func TestUpdateInfobase_EmptyClusterId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.UpdateInfobaseRequest{
+		ClusterId:  "",
+		InfobaseId: "660e8400-e29b-41d4-a716-446655440000",
+	}
+
+	ctx := context.Background()
+	_, err := srv.UpdateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("UpdateInfobase() with empty cluster_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("UpdateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("UpdateInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestUpdateInfobase_EmptyInfobaseId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.UpdateInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId: "",
+	}
+
+	ctx := context.Background()
+	_, err := srv.UpdateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("UpdateInfobase() with empty infobase_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("UpdateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("UpdateInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestUpdateInfobase_Unimplemented(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.UpdateInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId: "660e8400-e29b-41d4-a716-446655440000",
+	}
+
+	ctx := context.Background()
+	_, err := srv.UpdateInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("UpdateInfobase() should return error when not implemented")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("UpdateInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.Unimplemented {
+		t.Errorf("UpdateInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+	}
+}
+
+func TestDropInfobase_Success(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.DropInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId: "660e8400-e29b-41d4-a716-446655440000",
+		DropMode:   pb.DropMode_DROP_MODE_DROP_DATABASE,
+	}
+
+	ctx := context.Background()
+	_, err := srv.DropInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("DropInfobase() should return error when not implemented")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("DropInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.Unimplemented {
+		t.Errorf("DropInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+	}
+}
+
+func TestDropInfobase_EmptyClusterId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.DropInfobaseRequest{
+		ClusterId:  "",
+		InfobaseId: "660e8400-e29b-41d4-a716-446655440000",
+		DropMode:   pb.DropMode_DROP_MODE_DROP_DATABASE,
+	}
+
+	ctx := context.Background()
+	_, err := srv.DropInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("DropInfobase() with empty cluster_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("DropInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("DropInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestDropInfobase_EmptyInfobaseId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.DropInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId: "",
+		DropMode:   pb.DropMode_DROP_MODE_DROP_DATABASE,
+	}
+
+	ctx := context.Background()
+	_, err := srv.DropInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("DropInfobase() with empty infobase_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("DropInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("DropInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestDropInfobase_UnspecifiedMode(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.DropInfobaseRequest{
+		ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId: "660e8400-e29b-41d4-a716-446655440000",
+		DropMode:   pb.DropMode_DROP_MODE_UNSPECIFIED,
+	}
+
+	ctx := context.Background()
+	_, err := srv.DropInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("DropInfobase() with UNSPECIFIED mode should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("DropInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("DropInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestDropInfobase_AllDropModes(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	modes := []pb.DropMode{
+		pb.DropMode_DROP_MODE_UNREGISTER_ONLY,
+		pb.DropMode_DROP_MODE_DROP_DATABASE,
+		pb.DropMode_DROP_MODE_CLEAR_DATABASE,
+	}
+
+	for _, mode := range modes {
+		t.Run(mode.String(), func(t *testing.T) {
+			req := &pb.DropInfobaseRequest{
+				ClusterId:  "550e8400-e29b-41d4-a716-446655440000",
+				InfobaseId: "660e8400-e29b-41d4-a716-446655440000",
+				DropMode:   mode,
+			}
+
+			ctx := context.Background()
+			_, err := srv.DropInfobase(ctx, req)
+
+			if err == nil {
+				t.Error("DropInfobase() should return error when not implemented")
+				return
+			}
+
+			st, ok := status.FromError(err)
+			if !ok {
+				t.Errorf("DropInfobase() error is not gRPC status: %v", err)
+				return
+			}
+
+			if st.Code() != codes.Unimplemented {
+				t.Errorf("DropInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+			}
+		})
+	}
+}
+
+func TestDropInfobase_AuditLogging(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	logger := zap.New(core)
+
+	srv := &InfobaseManagementServer{
+		logger: logger,
+	}
+
+	clusterUser := "admin"
+	req := &pb.DropInfobaseRequest{
+		ClusterId:   "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:  "660e8400-e29b-41d4-a716-446655440000",
+		DropMode:    pb.DropMode_DROP_MODE_DROP_DATABASE,
+		ClusterUser: &clusterUser,
+	}
+
+	ctx := context.Background()
+	_, _ = srv.DropInfobase(ctx, req)
+
+	allLogs := logs.All()
+	if len(allLogs) == 0 {
+		t.Error("DropInfobase() should create audit log")
+		return
+	}
+
+	firstLog := allLogs[0]
+	if firstLog.Message != "Destructive operation requested" {
+		t.Errorf("DropInfobase() first log message = %q, want %q", firstLog.Message, "Destructive operation requested")
+	}
+
+	contextMap := make(map[string]string)
+	for _, field := range firstLog.Context {
+		contextMap[field.Key] = field.String
+	}
+
+	if contextMap["operation"] != "DropInfobase" {
+		t.Errorf("DropInfobase() audit log operation = %q, want %q", contextMap["operation"], "DropInfobase")
+	}
+
+	if contextMap["cluster_id"] != "550e8400-e29b-41d4-a716-446655440000" {
+		t.Errorf("DropInfobase() audit log cluster_id mismatch")
+	}
+
+	if contextMap["infobase_id"] != "660e8400-e29b-41d4-a716-446655440000" {
+		t.Errorf("DropInfobase() audit log infobase_id mismatch")
+	}
+}
+
+func TestLockInfobase_Success(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	deniedMsg := "Database is locked for maintenance"
+	req := &pb.LockInfobaseRequest{
+		ClusterId:         "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:        "660e8400-e29b-41d4-a716-446655440000",
+		SessionsDeny:      true,
+		ScheduledJobsDeny: false,
+		DeniedMessage:     &deniedMsg,
+	}
+
+	ctx := context.Background()
+	_, err := srv.LockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("LockInfobase() should return error when UpdateInfobase is not implemented")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("LockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.Unimplemented {
+		t.Errorf("LockInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+	}
+}
+
+func TestLockInfobase_EmptyClusterId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.LockInfobaseRequest{
+		ClusterId:    "",
+		InfobaseId:   "660e8400-e29b-41d4-a716-446655440000",
+		SessionsDeny: true,
+	}
+
+	ctx := context.Background()
+	_, err := srv.LockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("LockInfobase() with empty cluster_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("LockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("LockInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestLockInfobase_EmptyInfobaseId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.LockInfobaseRequest{
+		ClusterId:    "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:   "",
+		SessionsDeny: true,
+	}
+
+	ctx := context.Background()
+	_, err := srv.LockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("LockInfobase() with empty infobase_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("LockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("LockInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestLockInfobase_WithPermissionCode(t *testing.T) {
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zap.New(core)
+
+	srv := &InfobaseManagementServer{
+		logger: logger,
+	}
+
+	permCode := "ABC123"
+	deniedMsg := "Database locked"
+	req := &pb.LockInfobaseRequest{
+		ClusterId:         "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:        "660e8400-e29b-41d4-a716-446655440000",
+		SessionsDeny:      true,
+		ScheduledJobsDeny: false,
+		PermissionCode:    &permCode,
+		DeniedMessage:     &deniedMsg,
+	}
+
+	ctx := context.Background()
+	_, _ = srv.LockInfobase(ctx, req)
+
+	allLogs := logs.All()
+	if len(allLogs) == 0 {
+		t.Error("LockInfobase() should create logs")
+	}
+}
+
+func TestLockInfobase_AllFlags(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	deniedMsg := "Maintenance in progress"
+	req := &pb.LockInfobaseRequest{
+		ClusterId:         "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:        "660e8400-e29b-41d4-a716-446655440000",
+		SessionsDeny:      true,
+		ScheduledJobsDeny: true,
+		DeniedMessage:     &deniedMsg,
+	}
+
+	ctx := context.Background()
+	_, err := srv.LockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("LockInfobase() should return error when not implemented")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("LockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.Unimplemented {
+		t.Errorf("LockInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+	}
+}
+
+func TestUnlockInfobase_Success(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.UnlockInfobaseRequest{
+		ClusterId:           "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:          "660e8400-e29b-41d4-a716-446655440000",
+		UnlockSessions:      true,
+		UnlockScheduledJobs: false,
+	}
+
+	ctx := context.Background()
+	_, err := srv.UnlockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("UnlockInfobase() should return error when UpdateInfobase is not implemented")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("UnlockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.Unimplemented {
+		t.Errorf("UnlockInfobase() code = %v, want %v", st.Code(), codes.Unimplemented)
+	}
+}
+
+func TestUnlockInfobase_EmptyClusterId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.UnlockInfobaseRequest{
+		ClusterId:      "",
+		InfobaseId:     "660e8400-e29b-41d4-a716-446655440000",
+		UnlockSessions: true,
+	}
+
+	ctx := context.Background()
+	_, err := srv.UnlockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("UnlockInfobase() with empty cluster_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("UnlockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("UnlockInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestUnlockInfobase_EmptyInfobaseId(t *testing.T) {
+	srv := NewInfobaseManagementServer()
+
+	req := &pb.UnlockInfobaseRequest{
+		ClusterId:      "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:     "",
+		UnlockSessions: true,
+	}
+
+	ctx := context.Background()
+	_, err := srv.UnlockInfobase(ctx, req)
+
+	if err == nil {
+		t.Error("UnlockInfobase() with empty infobase_id should return error")
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Errorf("UnlockInfobase() error is not gRPC status: %v", err)
+		return
+	}
+
+	if st.Code() != codes.InvalidArgument {
+		t.Errorf("UnlockInfobase() code = %v, want %v", st.Code(), codes.InvalidArgument)
+	}
+}
+
+func TestUnlockInfobase_UnlockBothFlags(t *testing.T) {
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zap.New(core)
+
+	srv := &InfobaseManagementServer{
+		logger: logger,
+	}
+
+	req := &pb.UnlockInfobaseRequest{
+		ClusterId:           "550e8400-e29b-41d4-a716-446655440000",
+		InfobaseId:          "660e8400-e29b-41d4-a716-446655440000",
+		UnlockSessions:      true,
+		UnlockScheduledJobs: true,
+	}
+
+	ctx := context.Background()
+	_, _ = srv.UnlockInfobase(ctx, req)
+
+	allLogs := logs.All()
+	if len(allLogs) == 0 {
+		t.Error("UnlockInfobase() should create logs")
+	}
+
+	firstLog := allLogs[0]
+	if firstLog.Message != "UnlockInfobase request" {
+		t.Errorf("UnlockInfobase() log message = %q, want %q", firstLog.Message, "UnlockInfobase request")
+	}
+}
+
+// ==================== HELPER FUNCTIONS ====================
+
+func newTestError(msg string) error {
+	return &testError{message: msg}
+}
+
+type testError struct {
+	message string
+}
+
+func (e *testError) Error() string {
+	return e.message
+}
+
+func stringPtr(s string) *string {
+	return &s
+}

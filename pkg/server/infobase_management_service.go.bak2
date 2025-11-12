@@ -1,0 +1,447 @@
+package server
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/v8platform/ras-grpc-gw/pkg/client"
+	pb "github.com/v8platform/ras-grpc-gw/pkg/gen/infobase/service"
+	"github.com/v8platform/ras-grpc-gw/pkg/logger"
+	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+// InfobaseManagementServer implements infobase management gRPC service
+type InfobaseManagementServer struct {
+	pb.UnimplementedInfobaseManagementServiceServer
+	logger *zap.Logger
+	client *client.ClientConn
+}
+
+// NewInfobaseManagementServer creates new server instance
+func NewInfobaseManagementServer() *InfobaseManagementServer {
+	return &InfobaseManagementServer{
+		logger: logger.Log,
+		// TODO: Initialize RAS client connection with proper address
+		// client: client.NewClientConn(rasAddr),
+	}
+}
+
+// ==================== HELPER METHODS ====================
+
+// validateClusterId проверяет что cluster_id не пустой
+func (s *InfobaseManagementServer) validateClusterId(clusterId string) error {
+	if strings.TrimSpace(clusterId) == "" {
+		return status.Error(codes.InvalidArgument, "cluster_id is required")
+	}
+	return nil
+}
+
+// validateInfobaseId проверяет что infobase_id не пустой
+func (s *InfobaseManagementServer) validateInfobaseId(infobaseId string) error {
+	if strings.TrimSpace(infobaseId) == "" {
+		return status.Error(codes.InvalidArgument, "infobase_id is required")
+	}
+	return nil
+}
+
+// validateName проверяет что name не пустое
+func (s *InfobaseManagementServer) validateName(name string) error {
+	if strings.TrimSpace(name) == "" {
+		return status.Error(codes.InvalidArgument, "name is required")
+	}
+	return nil
+}
+
+// validateDBMS проверяет что DBMS указан
+func (s *InfobaseManagementServer) validateDBMS(dbms pb.DBMSType) error {
+	if dbms == pb.DBMSType_DBMS_TYPE_UNSPECIFIED {
+		return status.Error(codes.InvalidArgument, "dbms type is required")
+	}
+	return nil
+}
+
+// mapRASError мапит RAS ошибки в gRPC status codes
+func (s *InfobaseManagementServer) mapRASError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	errMsg := err.Error()
+
+	if strings.Contains(errMsg, "not found") {
+		return status.Error(codes.NotFound, "infobase not found")
+	}
+	if strings.Contains(errMsg, "access denied") {
+		return status.Error(codes.PermissionDenied, "access denied")
+	}
+	if strings.Contains(errMsg, "already exists") {
+		return status.Error(codes.AlreadyExists, "infobase already exists")
+	}
+
+	return status.Error(codes.Internal, fmt.Sprintf("RAS error: %v", err))
+}
+
+// sanitizePassword заменяет пароль на маску для логирования
+func sanitizePassword(password string) string {
+	if password == "" {
+		return "<empty>"
+	}
+	return "<provided>"
+}
+
+// ==================== CRUD OPERATIONS ====================
+
+// UpdateInfobase изменяет параметры существующей информационной базы
+// Это базовый метод, который используется LockInfobase и UnlockInfobase
+func (s *InfobaseManagementServer) UpdateInfobase(
+	ctx context.Context,
+	req *pb.UpdateInfobaseRequest,
+) (*pb.UpdateInfobaseResponse, error) {
+	// Валидация обязательных полей
+	if err := s.validateClusterId(req.ClusterId); err != nil {
+		return nil, err
+	}
+	if err := s.validateInfobaseId(req.InfobaseId); err != nil {
+		return nil, err
+	}
+
+	// Логирование запроса (без паролей!)
+	s.logger.Info("UpdateInfobase request",
+		zap.String("cluster_id", req.ClusterId),
+		zap.String("infobase_id", req.InfobaseId),
+		zap.Any("sessions_deny", req.SessionsDeny),
+		zap.Any("scheduled_jobs_deny", req.ScheduledJobsDeny),
+		zap.String("db_password", sanitizePassword(req.GetDbPassword())),
+		zap.String("cluster_password", sanitizePassword(req.GetClusterPassword())),
+	)
+
+	// TODO: Реализовать взаимодействие с RAS Binary Protocol
+	// Шаги:
+	// 1. Получить endpoint от RAS client
+	// 2. Аутентифицироваться в кластере (если cluster_user/password предоставлены)
+	// 3. Построить UPDATE_INFOBASE_REQUEST сообщение с переданными полями
+	// 4. Выполнить запрос через RAS endpoint
+	// 5. Обработать ответ
+	//
+	// Пример кода:
+	// endpoint, err := s.client.GetEndpoint(ctx)
+	// if err != nil {
+	//     return nil, s.mapRASError(err)
+	// }
+	//
+	// if req.ClusterUser != nil {
+	//     auth := clientv1.NewAuthService(endpoint)
+	//     _, err = auth.AuthenticateCluster(ctx, &messagesv1.ClusterAuthenticateRequest{
+	//         ClusterId: req.ClusterId,
+	//         User:      req.GetClusterUser(),
+	//         Password:  req.GetClusterPassword(),
+	//     })
+	//     if err != nil {
+	//         return nil, s.mapRASError(err)
+	//     }
+	// }
+	//
+	// // Построить RAS UpdateInfobaseRequest
+	// rasReq := buildRASUpdateRequest(req)
+	//
+	// // Выполнить через endpoint
+	// rasResp, err := executeRASUpdate(endpoint, rasReq)
+	// if err != nil {
+	//     return nil, s.mapRASError(err)
+	// }
+
+	return nil, status.Error(codes.Unimplemented,
+		"UpdateInfobase not fully implemented - requires RAS Binary Protocol integration")
+}
+
+// CreateInfobase создает новую информационную базу в кластере
+func (s *InfobaseManagementServer) CreateInfobase(
+	ctx context.Context,
+	req *pb.CreateInfobaseRequest,
+) (*pb.CreateInfobaseResponse, error) {
+	// Валидация обязательных полей
+	if err := s.validateClusterId(req.ClusterId); err != nil {
+		return nil, err
+	}
+	if err := s.validateName(req.Name); err != nil {
+		return nil, err
+	}
+	if err := s.validateDBMS(req.Dbms); err != nil {
+		return nil, err
+	}
+
+	// Валидация полей для серверных СУБД
+	if req.Dbms != pb.DBMSType_DBMS_TYPE_UNSPECIFIED {
+		if strings.TrimSpace(req.DbServer) == "" {
+			return nil, status.Error(codes.InvalidArgument, "db_server is required for server DBMS")
+		}
+		if strings.TrimSpace(req.DbName) == "" {
+			return nil, status.Error(codes.InvalidArgument, "db_name is required for server DBMS")
+		}
+	}
+
+	// Логирование запроса (без паролей!)
+	s.logger.Info("CreateInfobase request",
+		zap.String("cluster_id", req.ClusterId),
+		zap.String("name", req.Name),
+		zap.String("dbms", req.Dbms.String()),
+		zap.String("db_server", req.DbServer),
+		zap.String("db_name", req.DbName),
+		zap.String("db_user", req.GetDbUser()),
+		zap.String("db_password", sanitizePassword(req.GetDbPassword())),
+		zap.String("cluster_password", sanitizePassword(req.GetClusterPassword())),
+	)
+
+	// TODO: Проверить уникальность имени в кластере
+	// Шаги:
+	// 1. Получить список существующих баз: GetShortInfobases
+	// 2. Проверить что имя не занято
+	// 3. Если занято - вернуть AlreadyExists
+	//
+	// Пример:
+	// endpoint, err := s.client.GetEndpoint(ctx)
+	// if err != nil {
+	//     return nil, s.mapRASError(err)
+	// }
+	//
+	// service := clientv1.NewInfobasesService(endpoint)
+	// infobases, err := service.GetShortInfobases(ctx, &messagesv1.GetInfobasesShortRequest{
+	//     ClusterId: req.ClusterId,
+	// })
+	// if err != nil {
+	//     return nil, s.mapRASError(err)
+	// }
+	//
+	// for _, ib := range infobases.Sessions {
+	//     if ib.Name == req.Name {
+	//         return nil, status.Error(codes.AlreadyExists, "infobase with this name already exists")
+	//     }
+	// }
+
+	// TODO: Создать базу через RAS Binary Protocol
+	// Шаги:
+	// 1. Аутентифицироваться в кластере
+	// 2. Построить CREATE_INFOBASE_REQUEST сообщение
+	// 3. Выполнить запрос через RAS endpoint
+	// 4. Получить infobase_id из ответа
+	//
+	// Пример:
+	// rasReq := &messagesv1.CreateInfobaseRequest{
+	//     ClusterId:     req.ClusterId,
+	//     Name:          req.Name,
+	//     Dbms:          convertDBMSType(req.Dbms),
+	//     DbServer:      req.DbServer,
+	//     DbName:        req.DbName,
+	//     DbUser:        req.GetDbUser(),
+	//     DbPassword:    req.GetDbPassword(),
+	//     // ... другие поля
+	// }
+	//
+	// rasResp, err := executeRASCreate(endpoint, rasReq)
+	// if err != nil {
+	//     return nil, s.mapRASError(err)
+	// }
+
+	return nil, status.Error(codes.Unimplemented,
+		"CreateInfobase not fully implemented - requires RAS Binary Protocol integration")
+}
+
+// DropInfobase удаляет информационную базу из кластера
+// КРИТИЧНО: Деструктивная операция с обязательным audit logging
+func (s *InfobaseManagementServer) DropInfobase(
+	ctx context.Context,
+	req *pb.DropInfobaseRequest,
+) (*pb.DropInfobaseResponse, error) {
+	// Валидация обязательных полей
+	if err := s.validateClusterId(req.ClusterId); err != nil {
+		return nil, err
+	}
+	if err := s.validateInfobaseId(req.InfobaseId); err != nil {
+		return nil, err
+	}
+
+	// Валидация режима удаления
+	if req.DropMode == pb.DropMode_DROP_MODE_UNSPECIFIED {
+		return nil, status.Error(codes.InvalidArgument, "drop_mode is required")
+	}
+
+	// ⚠️ AUDIT LOG ПЕРЕД операцией
+	s.logger.Warn("Destructive operation requested",
+		zap.String("operation", "DropInfobase"),
+		zap.String("cluster_id", req.ClusterId),
+		zap.String("infobase_id", req.InfobaseId),
+		zap.String("drop_mode", req.DropMode.String()),
+		zap.String("cluster_user", req.GetClusterUser()),
+	)
+
+	// TODO: Выполнить операцию удаления согласно режиму
+	// Шаги:
+	// 1. Аутентифицироваться в кластере
+	// 2. Получить информацию о базе (для логирования)
+	// 3. Построить DROP_INFOBASE_REQUEST с указанным режимом
+	// 4. Выполнить запрос через RAS endpoint
+	// 5. Логировать результат (success/failure)
+	//
+	// Режимы:
+	// - DROP_MODE_UNREGISTER_ONLY: только отрегистрировать (БД остается)
+	// - DROP_MODE_DROP_DATABASE: удалить БД физически (ОПАСНО!)
+	// - DROP_MODE_CLEAR_DATABASE: очистить БД, сохранить структуру
+	//
+	// Пример:
+	// endpoint, err := s.client.GetEndpoint(ctx)
+	// if err != nil {
+	//     s.logger.Error("Failed to get RAS endpoint",
+	//         zap.String("operation", "DropInfobase"),
+	//         zap.Error(err))
+	//     return nil, s.mapRASError(err)
+	// }
+	//
+	// rasReq := &messagesv1.DropInfobaseRequest{
+	//     ClusterId:  req.ClusterId,
+	//     InfobaseId: req.InfobaseId,
+	//     DropMode:   convertDropMode(req.DropMode),
+	// }
+	//
+	// err = executeRASDrop(endpoint, rasReq)
+	// if err != nil {
+	//     s.logger.Error("DropInfobase failed",
+	//         zap.String("infobase_id", req.InfobaseId),
+	//         zap.Error(err))
+	//     return nil, s.mapRASError(err)
+	// }
+	//
+	// // ⚠️ AUDIT LOG ПОСЛЕ успешной операции
+	// s.logger.Warn("Destructive operation completed successfully",
+	//     zap.String("operation", "DropInfobase"),
+	//     zap.String("infobase_id", req.InfobaseId),
+	//     zap.String("drop_mode", req.DropMode.String()))
+
+	return nil, status.Error(codes.Unimplemented,
+		"DropInfobase not fully implemented - requires RAS Binary Protocol integration")
+}
+
+// ==================== LOCK/UNLOCK OPERATIONS ====================
+// Эти методы являются wrapper'ами над UpdateInfobase
+
+// LockInfobase блокирует доступ к информационной базе
+// Это wrapper над UpdateInfobase с установкой флагов блокировки
+func (s *InfobaseManagementServer) LockInfobase(
+	ctx context.Context,
+	req *pb.LockInfobaseRequest,
+) (*pb.LockInfobaseResponse, error) {
+	// Валидация обязательных полей
+	if err := s.validateClusterId(req.ClusterId); err != nil {
+		return nil, err
+	}
+	if err := s.validateInfobaseId(req.InfobaseId); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("LockInfobase request",
+		zap.String("cluster_id", req.ClusterId),
+		zap.String("infobase_id", req.InfobaseId),
+		zap.Bool("sessions_deny", req.SessionsDeny),
+		zap.Bool("scheduled_jobs_deny", req.ScheduledJobsDeny),
+		zap.Bool("has_permission_code", req.PermissionCode != nil),
+	)
+
+	// Построить UpdateInfobaseRequest с параметрами блокировки
+	updateReq := &pb.UpdateInfobaseRequest{
+		ClusterId:       req.ClusterId,
+		InfobaseId:      req.InfobaseId,
+		ClusterUser:     req.ClusterUser,
+		ClusterPassword: req.ClusterPassword,
+	}
+
+	// Установить флаги блокировки
+	if req.SessionsDeny {
+		updateReq.SessionsDeny = &req.SessionsDeny
+		updateReq.DeniedFrom = req.DeniedFrom
+		updateReq.DeniedTo = req.DeniedTo
+		updateReq.DeniedMessage = req.DeniedMessage
+
+		// Установить permission_code если передан
+		if req.PermissionCode != nil {
+			updateReq.PermissionCode = req.PermissionCode
+		}
+	}
+
+	if req.ScheduledJobsDeny {
+		updateReq.ScheduledJobsDeny = &req.ScheduledJobsDeny
+	}
+
+	// Вызвать UpdateInfobase
+	updateResp, err := s.UpdateInfobase(ctx, updateReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// Вернуть ответ с текущим временем
+	return &pb.LockInfobaseResponse{
+		InfobaseId: req.InfobaseId,
+		Message:    updateResp.Message,
+		Success:    updateResp.Success,
+	}, nil
+}
+
+// UnlockInfobase снимает блокировку с информационной базы
+// Это wrapper над UpdateInfobase с снятием флагов блокировки
+func (s *InfobaseManagementServer) UnlockInfobase(
+	ctx context.Context,
+	req *pb.UnlockInfobaseRequest,
+) (*pb.UnlockInfobaseResponse, error) {
+	// Валидация обязательных полей
+	if err := s.validateClusterId(req.ClusterId); err != nil {
+		return nil, err
+	}
+	if err := s.validateInfobaseId(req.InfobaseId); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("UnlockInfobase request",
+		zap.String("cluster_id", req.ClusterId),
+		zap.String("infobase_id", req.InfobaseId),
+		zap.Bool("unlock_sessions", req.UnlockSessions),
+		zap.Bool("unlock_scheduled_jobs", req.UnlockScheduledJobs),
+	)
+
+	// Построить UpdateInfobaseRequest с параметрами разблокировки
+	updateReq := &pb.UpdateInfobaseRequest{
+		ClusterId:       req.ClusterId,
+		InfobaseId:      req.InfobaseId,
+		ClusterUser:     req.ClusterUser,
+		ClusterPassword: req.ClusterPassword,
+	}
+
+	// Снять флаги блокировки
+	if req.UnlockSessions {
+		sessionsDeny := false
+		updateReq.SessionsDeny = &sessionsDeny
+		// Очистить permission_code
+		emptyCode := ""
+		updateReq.PermissionCode = &emptyCode
+	}
+
+	if req.UnlockScheduledJobs {
+		scheduledJobsDeny := false
+		updateReq.ScheduledJobsDeny = &scheduledJobsDeny
+	}
+
+	// Вызвать UpdateInfobase
+	updateResp, err := s.UpdateInfobase(ctx, updateReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// Вернуть ответ с текущим временем
+	return &pb.UnlockInfobaseResponse{
+		InfobaseId: req.InfobaseId,
+		Message:    updateResp.Message,
+		Success:    updateResp.Success,
+	}, nil
+}

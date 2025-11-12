@@ -1,0 +1,520 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>health: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/v8platform/ras-grpc-gw/pkg/health/health.go (100.0%)</option>
+				
+				<option value="file1">github.com/v8platform/ras-grpc-gw/pkg/logger/logger.go (91.7%)</option>
+				
+				<option value="file2">github.com/v8platform/ras-grpc-gw/pkg/server/access_service.go (33.3%)</option>
+				
+				<option value="file3">github.com/v8platform/ras-grpc-gw/pkg/server/server.go (10.2%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package health
+
+import (
+        "context"
+        "encoding/json"
+        "net/http"
+        "time"
+
+        "github.com/v8platform/ras-grpc-gw/pkg/logger"
+        "go.uber.org/zap"
+)
+
+// HealthChecker interface для проверки здоровья компонентов
+type HealthChecker interface {
+        Check(ctx context.Context) error
+}
+
+// Server HTTP сервер для health checks
+type Server struct {
+        server  *http.Server
+        checker HealthChecker
+}
+
+// NewServer создает новый health check сервер
+func NewServer(addr string, checker HealthChecker) *Server <span class="cov8" title="1">{
+        mux := http.NewServeMux()
+
+        s := &amp;Server{
+                server: &amp;http.Server{
+                        Addr:         addr,
+                        Handler:      mux,
+                        ReadTimeout:  5 * time.Second,
+                        WriteTimeout: 5 * time.Second,
+                },
+                checker: checker,
+        }
+
+        // Регистрация endpoints
+        mux.HandleFunc("/health", s.healthHandler)
+        mux.HandleFunc("/ready", s.readyHandler)
+
+        return s
+}</span>
+
+// Start запускает health check сервер
+func (s *Server) Start() error <span class="cov8" title="1">{
+        logger.Log.Info("Starting health check server", zap.String("address", s.server.Addr))
+        return s.server.ListenAndServe()
+}</span>
+
+// Shutdown gracefully останавливает сервер
+func (s *Server) Shutdown(ctx context.Context) error <span class="cov8" title="1">{
+        logger.Log.Info("Shutting down health check server")
+        return s.server.Shutdown(ctx)
+}</span>
+
+// healthHandler обрабатывает /health endpoint
+func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        // Health check всегда возвращает 200 если сервис запущен
+        response := map[string]interface{}{
+                "status":  "healthy",
+                "service": "ras-grpc-gw",
+                "version": "v1.0.0-cc",
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(response)
+}</span>
+
+// readyHandler обрабатывает /ready endpoint
+func (s *Server) readyHandler(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+        defer cancel()
+
+        // Проверка готовности через checker
+        if s.checker != nil </span><span class="cov8" title="1">{
+                if err := s.checker.Check(ctx); err != nil </span><span class="cov8" title="1">{
+                        logger.Log.Warn("Readiness check failed", zap.Error(err))
+
+                        response := map[string]interface{}{
+                                "status": "not_ready",
+                                "error":  err.Error(),
+                        }
+
+                        w.Header().Set("Content-Type", "application/json")
+                        w.WriteHeader(http.StatusServiceUnavailable)
+                        json.NewEncoder(w).Encode(response)
+                        return
+                }</span>
+        }
+
+        // Готов к обработке запросов
+        <span class="cov8" title="1">response := map[string]interface{}{
+                "status": "ready",
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(response)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package logger
+
+import (
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
+)
+
+var Log *zap.Logger
+
+// Init initializes the global logger
+func Init(debug bool) error <span class="cov8" title="1">{
+        var cfg zap.Config
+
+        if debug </span><span class="cov8" title="1">{
+                cfg = zap.NewDevelopmentConfig()
+                cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+        }</span> else<span class="cov8" title="1"> {
+                cfg = zap.NewProductionConfig()
+        }</span>
+
+        <span class="cov8" title="1">var err error
+        Log, err = cfg.Build()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Sync flushes any buffered log entries
+func Sync() <span class="cov8" title="1">{
+        if Log != nil </span><span class="cov8" title="1">{
+                _ = Log.Sync()
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package server
+
+import "github.com/v8platform/ras-grpc-gw/pkg/gen/access/service"
+
+type AccessServer interface {
+        service.TokenServiceServer
+        service.ClientServiceServer
+        ValidateToken(token string) (bool, error)
+        ValidateHash(token string, hash string) (bool, error)
+}
+
+type accessServer struct {
+        service.UnimplementedTokenServiceServer
+        service.UnimplementedClientServiceServer
+}
+
+func (a accessServer) ValidateToken(token string) (bool, error) <span class="cov0" title="0">{
+        panic("implement me")</span>
+}
+
+func (a accessServer) ValidateHash(token string, hash string) (bool, error) <span class="cov0" title="0">{
+        panic("implement me")</span>
+}
+
+func NewAccessServer() AccessServer <span class="cov8" title="1">{
+        return &amp;accessServer{}
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package server
+
+import (
+        "context"
+        "fmt"
+        "net"
+        "time"
+
+        _ "github.com/lithammer/shortuuid/v3"
+        "github.com/spf13/cast"
+        clientv1 "github.com/v8platform/protos/gen/ras/client/v1"
+        messagesv1 "github.com/v8platform/protos/gen/ras/messages/v1"
+        ras_service "github.com/v8platform/protos/gen/ras/service/api/v1"
+        "github.com/v8platform/ras-grpc-gw/pkg/client"
+        access_service "github.com/v8platform/ras-grpc-gw/pkg/gen/access/service"
+        "github.com/v8platform/ras-grpc-gw/pkg/logger"
+        "go.uber.org/zap"
+        "google.golang.org/grpc"
+        "google.golang.org/grpc/metadata"
+        "google.golang.org/protobuf/types/known/emptypb"
+)
+
+func NewRASServer(rasAddr string) *RASServer <span class="cov8" title="1">{
+        return &amp;RASServer{
+                rasAddr: rasAddr,
+        }
+}</span>
+
+type RASServer struct {
+        rasAddr    string
+        grpcServer *grpc.Server
+
+        idxClients   map[string]*ClientInfo
+        idxEndpoints map[string]*EndpointInfo
+}
+
+type EndpointInfo struct {
+        uuid       string
+        client     *ClientInfo
+        EndpointId string
+}
+
+type ClientInfo struct {
+        uuid        string
+        conn        *client.ClientConn
+        IdleTimeout time.Duration
+}
+
+func (s *RASServer) Serve(host string) error <span class="cov0" title="0">{
+
+        listener, err := net.Listen("tcp", host)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to listen on %s: %w", host, err)
+        }</span>
+
+        <span class="cov0" title="0">srv := NewRasClientServiceServer(s.rasAddr)
+        
+        // Сохраняем ссылку на сервер
+        s.grpcServer = grpc.NewServer()
+        
+        ras_service.RegisterAuthServiceServer(s.grpcServer, srv)
+        ras_service.RegisterClustersServiceServer(s.grpcServer, srv)
+        ras_service.RegisterSessionsServiceServer(s.grpcServer, srv)
+        ras_service.RegisterInfobasesServiceServer(s.grpcServer, srv)
+
+        accessSrv := NewAccessServer()
+
+        access_service.RegisterClientServiceServer(s.grpcServer, accessSrv)
+        access_service.RegisterTokenServiceServer(s.grpcServer, accessSrv)
+
+        logger.Log.Info("Listening on", zap.String("address", host))
+        if err := s.grpcServer.Serve(listener); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to serve gRPC server: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// GracefulStop gracefully stops the gRPC server
+func (s *RASServer) GracefulStop(ctx context.Context) error <span class="cov8" title="1">{
+        if s.grpcServer != nil </span><span class="cov0" title="0">{
+                // Создаем канал для отслеживания завершения
+                stopped := make(chan struct{})
+
+                go func() </span><span class="cov0" title="0">{
+                        s.grpcServer.GracefulStop()
+                        close(stopped)
+                }</span>()
+
+                // Ждем завершения или таймаута
+                <span class="cov0" title="0">select </span>{
+                case &lt;-stopped:<span class="cov0" title="0">
+                        logger.Log.Info("gRPC server stopped gracefully")
+                        return nil</span>
+                case &lt;-ctx.Done():<span class="cov0" title="0">
+                        // Если таймаут - форсируем остановку
+                        logger.Log.Warn("Graceful shutdown timeout, forcing stop")
+                        s.grpcServer.Stop()
+                        return ctx.Err()</span>
+                }
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Check проверяет подключение к RAS серверу
+func (s *RASServer) Check(ctx context.Context) error <span class="cov8" title="1">{
+        // TODO: Реализовать реальную проверку подключения к RAS
+        // Пока что заглушка, которая всегда возвращает успех
+
+        // В будущем здесь должна быть проверка:
+        // - Подключение к RAS серверу доступно
+        // - Можно выполнить простой запрос (например, получить список кластеров)
+
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov8" title="1">
+                return ctx.Err()</span>
+        default:<span class="cov8" title="1">
+                // Проверка что RAS адрес установлен
+                if s.rasAddr == "" </span><span class="cov8" title="1">{
+                        return fmt.Errorf("RAS address not configured")
+                }</span>
+                <span class="cov8" title="1">return nil</span>
+        }
+}
+
+func NewRasClientServiceServer(rasAddr string) ras_service.RASServiceServer <span class="cov8" title="1">{
+        return &amp;rasClientServiceServer{
+                client: client.NewClientConn(rasAddr),
+        }
+}</span>
+
+type rasClientServiceServer struct {
+        ras_service.UnimplementedRASServiceServer
+        client *client.ClientConn
+}
+
+func (s *rasClientServiceServer) AuthenticateCluster(ctx context.Context, request *messagesv1.ClusterAuthenticateRequest) (*emptypb.Empty, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">auth := clientv1.NewAuthService(endpoint)
+
+        return auth.AuthenticateCluster(ctx, request)</span>
+
+}
+
+func (s *rasClientServiceServer) withEndpoint(ctx context.Context, fn func(clientv1.EndpointServiceImpl) error) (err error) <span class="cov0" title="0">{
+        var endpoint clientv1.EndpointServiceImpl
+        endpoint, err = s.client.GetEndpoint(ctx)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err == nil </span><span class="cov0" title="0">{
+                        header := metadata.New(map[string]string{
+                                "endpoint_id": cast.ToString(endpoint),
+                                //"host": cast.ToString(s.client.),
+                        })
+
+                        _ = grpc.SendHeader(ctx, header)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">return fn(endpoint)</span>
+}
+
+func (s *rasClientServiceServer) AuthenticateInfobase(ctx context.Context, request *messagesv1.AuthenticateInfobaseRequest) (*emptypb.Empty, error) <span class="cov0" title="0">{
+
+        var resp *emptypb.Empty
+        var err error
+
+        err = s.withEndpoint(ctx, func(endpoint clientv1.EndpointServiceImpl) error </span><span class="cov0" title="0">{
+                auth := clientv1.NewAuthService(endpoint)
+                resp, err = auth.AuthenticateInfobase(ctx, request)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+
+        })
+
+        <span class="cov0" title="0">return resp, err</span>
+}
+
+func (s *rasClientServiceServer) AuthenticateAgent(ctx context.Context, request *messagesv1.AuthenticateAgentRequest) (*emptypb.Empty, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">auth := clientv1.NewAuthService(endpoint)
+
+        return auth.AuthenticateAgent(ctx, request)</span>
+}
+
+func (s *rasClientServiceServer) GetClusters(ctx context.Context, request *messagesv1.GetClustersRequest) (*messagesv1.GetClustersResponse, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">service := clientv1.NewClustersService(endpoint)
+        return service.GetClusters(ctx, request)</span>
+}
+
+func (s *rasClientServiceServer) GetClusterInfo(ctx context.Context, request *messagesv1.GetClusterInfoRequest) (*messagesv1.GetClusterInfoResponse, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">service := clientv1.NewClustersService(endpoint)
+        return service.GetClusterInfo(ctx, request)</span>
+}
+
+func (s *rasClientServiceServer) GetSessions(ctx context.Context, request *messagesv1.GetSessionsRequest) (*messagesv1.GetSessionsResponse, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">service := clientv1.NewSessionsService(endpoint)
+        return service.GetSessions(ctx, request)</span>
+}
+
+func (s *rasClientServiceServer) GetShortInfobases(ctx context.Context, request *messagesv1.GetInfobasesShortRequest) (*messagesv1.GetInfobasesShortResponse, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">service := clientv1.NewInfobasesService(endpoint)
+        return service.GetShortInfobases(ctx, request)</span>
+}
+
+func (s *rasClientServiceServer) GetInfobaseSessions(ctx context.Context, request *messagesv1.GetInfobaseSessionsRequest) (*messagesv1.GetInfobaseSessionsResponse, error) <span class="cov0" title="0">{
+        endpoint, err := s.client.GetEndpoint(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">service := clientv1.NewInfobasesService(endpoint)
+        return service.GetSessions(ctx, request)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

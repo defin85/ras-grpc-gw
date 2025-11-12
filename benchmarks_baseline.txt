@@ -1,0 +1,143 @@
+# github.com/v8platform/ras-grpc-gw/pkg/server [github.com/v8platform/ras-grpc-gw/pkg/server.test]
+pkg\server\infobase_management_service_test.go:275:15: srv.validateServerDBMSFields undefined (type *InfobaseManagementServer has no field or method validateServerDBMSFields)
+pkg\server\infobase_management_service_test.go:330:15: srv.validateDropMode undefined (type *InfobaseManagementServer has no field or method validateDropMode)
+FAIL	github.com/v8platform/ras-grpc-gw/pkg/client [build failed]
+?   	github.com/v8platform/ras-grpc-gw/pkg/domain	[no test files]
+?   	github.com/v8platform/ras-grpc-gw/pkg/gen/access/service	[no test files]
+?   	github.com/v8platform/ras-grpc-gw/pkg/gen/infobase/service	[no test files]
+{"level":"warn","ts":1762115650.4843364,"caller":"health/health.go:79","msg":"Readiness check failed","error":"health check failed"}
+{"level":"info","ts":1762115650.4843364,"caller":"health/health.go:47","msg":"Starting health check server","address":"127.0.0.1:0"}
+{"level":"info","ts":1762115650.5851188,"caller":"health/health.go:53","msg":"Shutting down health check server"}
+PASS
+ok  	github.com/v8platform/ras-grpc-gw/pkg/health	0.661s
+goos: windows
+goarch: amd64
+pkg: github.com/v8platform/ras-grpc-gw/pkg/interceptor
+cpu: 12th Gen Intel(R) Core(TM) i5-12400F
+BenchmarkAuditInterceptor-12                             	  247104	      4189 ns/op	    4107 B/op	      18 allocs/op
+--- BENCH: BenchmarkAuditInterceptor-12
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:10.892+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+	... [output truncated]
+BenchmarkAuditInterceptor_DestructiveOperation-12        	  284335	      3898 ns/op	    4240 B/op	      18 allocs/op
+--- BENCH: BenchmarkAuditInterceptor_DestructiveOperation-12
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:11.981+0300	WARN	gRPC destructive operation	{"operation": "/infobase.service.InfobaseManagementService/DropInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-to-drop", "user": "admin"}
+	... [output truncated]
+BenchmarkAuditInterceptor_WithError-12                   	  273517	      4297 ns/op	    5522 B/op	      26 allocs/op
+--- BENCH: BenchmarkAuditInterceptor_WithError-12
+    logger.go:146: 2025-11-02T23:34:13.134+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+    logger.go:146: 2025-11-02T23:34:13.135+0300	ERROR	gRPC operation failed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "error", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin", "error": "test error"}
+	... [output truncated]
+BenchmarkExtractAuditMetadata-12                         	 6867192	       178.7 ns/op	      64 B/op	       2 allocs/op
+BenchmarkChainedInterceptors-12                          	  112963	      9502 ns/op	    8217 B/op	      55 allocs/op
+--- BENCH: BenchmarkChainedInterceptors-12
+    logger.go:146: 2025-11-02T23:34:15.775+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_id:\"cluster-123\" infobase_id:\"infobase-456\" cluster_user:\"admin\""}
+    logger.go:146: 2025-11-02T23:34:15.775+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_id:\"cluster-123\" infobase_id:\"infobase-456\" cluster_user:\"admin\""}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_id:\"cluster-123\" infobase_id:\"infobase-456\" cluster_user:\"admin\""}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_id:\"cluster-123\" infobase_id:\"infobase-456\" cluster_user:\"admin\""}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_id:\"cluster-123\" infobase_id:\"infobase-456\" cluster_user:\"admin\""}
+    logger.go:146: 2025-11-02T23:34:15.776+0300	INFO	gRPC operation completed	{"operation": "/infobase.service.InfobaseManagementService/CreateInfobase", "duration_ms": 0, "result": "success", "cluster_id": "cluster-123", "infobase_id": "infobase-456", "user": "admin"}
+	... [output truncated]
+BenchmarkSanitizePasswordsInterceptor-12                 	  175996	      5878 ns/op	    5142 B/op	      42 allocs/op
+--- BENCH: BenchmarkSanitizePasswordsInterceptor-12
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:16.967+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/CreateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+	... [output truncated]
+BenchmarkSanitizePasswordsInterceptor_LargeMessage-12    	  188097	      6234 ns/op	    5033 B/op	      42 allocs/op
+--- BENCH: BenchmarkSanitizePasswordsInterceptor_LargeMessage-12
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+    logger.go:146: 2025-11-02T23:34:18.074+0300	DEBUG	received gRPC request	{"method": "/infobase.service.InfobaseManagementService/UpdateInfobase", "request": "cluster_password:\"******\" db_password:\"******\" infobase_password:\"******\" cluster_id:\"cluster-123\" name:\"test-db\""}
+	... [output truncated]
+BenchmarkSanitizeMessage-12                              	 1000000	      1055 ns/op	     624 B/op	      14 allocs/op
+BenchmarkSanitizeMessage_NoPasswords-12                  	 1365310	       854.1 ns/op	     528 B/op	       8 allocs/op
+BenchmarkSanitizePasswordInString-12                     	1000000000	         0.1301 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/v8platform/ras-grpc-gw/pkg/interceptor	12.037s
+2025-11-02T23:34:22.834+0300	[34mINFO[0m	logger/logger_test.go:76	test message
+2025-11-02T23:34:22.853+0300	[35mDEBUG[0m	logger/logger_test.go:77	debug message
+2025-11-02T23:34:22.853+0300	[31mERROR[0m	logger/logger_test.go:78	error message
+github.com/v8platform/ras-grpc-gw/pkg/logger.TestLoggerAfterInit
+	C:/1CProject/ras-grpc-gw/pkg/logger/logger_test.go:78
+testing.tRunner
+	C:/Program Files/Go/src/testing/testing.go:1934
+{"level":"info","ts":1762115662.8653054,"caller":"logger/logger_test.go:91","msg":"production test message","key1":"value1","key2":42}
+{"level":"error","ts":1762115662.8653054,"caller":"logger/logger_test.go:97","msg":"error in production","error_code":500,"stacktrace":"github.com/v8platform/ras-grpc-gw/pkg/logger.TestLoggerProductionFormat\n\tC:/1CProject/ras-grpc-gw/pkg/logger/logger_test.go:97\ntesting.tRunner\n\tC:/Program Files/Go/src/testing/testing.go:1934"}
+2025-11-02T23:34:22.881+0300	[35mDEBUG[0m	logger/logger_test.go:110	debug test message	{"debug_key": "debug_value"}
+2025-11-02T23:34:22.881+0300	[33mWARN[0m	logger/logger_test.go:114	warning in debug mode
+github.com/v8platform/ras-grpc-gw/pkg/logger.TestLoggerDebugFormat
+	C:/1CProject/ras-grpc-gw/pkg/logger/logger_test.go:114
+testing.tRunner
+	C:/Program Files/Go/src/testing/testing.go:1934
+PASS
+ok  	github.com/v8platform/ras-grpc-gw/pkg/logger	0.271s
+FAIL	github.com/v8platform/ras-grpc-gw/pkg/server [build failed]
+goos: windows
+goarch: amd64
+pkg: github.com/v8platform/ras-grpc-gw/pkg/tlsconfig
+cpu: 12th Gen Intel(R) Core(TM) i5-12400F
+BenchmarkLoadTLSConfig-12             	    6487	    186730 ns/op	   23991 B/op	     161 allocs/op
+--- BENCH: BenchmarkLoadTLSConfig-12
+    logger.go:146: 2025-11-02T23:34:24.201+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig3189439863\\001\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig3189439863\\001\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.249+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.266+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.266+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.267+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.267+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.267+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.267+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.267+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+    logger.go:146: 2025-11-02T23:34:24.268+0300	INFO	Loading TLS certificate	{"cert": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-cert.pem", "key": "C:\\Users\\Egor\\AppData\\Local\\Temp\\BenchmarkLoadTLSConfig1936124812\\002\\dev-key.pem"}
+	... [output truncated]
+BenchmarkLoadTLSConfig_Disabled-12    	  889323	      1365 ns/op	     237 B/op	       3 allocs/op
+BenchmarkGenerateSelfSignedCert-12    	     100	  27877929 ns/op	  370525 B/op	    3463 allocs/op
+BenchmarkTLSHandshake-12              	10024768	       116.0 ns/op	     480 B/op	       1 allocs/op
+BenchmarkLoadX509KeyPair-12           	    8521	    139155 ns/op	   18248 B/op	     130 allocs/op
+BenchmarkTLSConfig_Clone-12           	10557655	       110.1 ns/op	     480 B/op	       1 allocs/op
+PASS
+ok  	github.com/v8platform/ras-grpc-gw/pkg/tlsconfig	12.095s
+FAIL

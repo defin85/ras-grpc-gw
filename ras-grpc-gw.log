@@ -1,0 +1,6 @@
+{"level":"info","ts":1762353452.0873966,"caller":"cmd/main.go:36","msg":"Starting ras-grpc-gw","version":"dev","commit":"","date":"","built_by":"","go_version":"go1.25.1"}
+{"level":"info","ts":1762353452.0879476,"caller":"cmd/main.go:85","msg":"Configuration","ras_addr":"localhost:1545","bind_addr":":9999","health_addr":":8081"}
+{"level":"info","ts":1762353452.0879476,"caller":"cmd/main.go:102","msg":"Starting gRPC server","address":":9999"}
+{"level":"info","ts":1762353452.0879476,"caller":"health/health.go:47","msg":"Starting health check server","address":":8081"}
+{"level":"warn","ts":1762353452.0890017,"caller":"server/server.go:85","msg":"TLS disabled - passwords transmitted in plaintext! Enable with TLS_ENABLED=true"}
+{"level":"info","ts":1762353452.0890017,"caller":"server/server.go:106","msg":"Listening on","address":":9999"}

@@ -42,6 +42,13 @@ func NewServer(addr string, checker HealthChecker) *Server {
 	return s
 }
 
+// SetHandler добавляет кастомный handler к mux (для расширения API)
+func (s *Server) SetHandler(pattern string, handler http.HandlerFunc) {
+	if mux, ok := s.server.Handler.(*http.ServeMux); ok {
+		mux.HandleFunc(pattern, handler)
+	}
+}
+
 // Start запускает health check сервер
 func (s *Server) Start() error {
 	logger.Log.Info("Starting health check server", zap.String("address", s.server.Addr))

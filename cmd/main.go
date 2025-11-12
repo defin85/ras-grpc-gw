@@ -94,6 +94,10 @@ func runServer(c *cli.Context) error {
 	// Создание HTTP health check сервера
 	healthSrv := health.NewServer(healthAddr, server)
 
+	// Регистрация дополнительных HTTP endpoints
+	// POST /api/v1/sessions/terminate - для cluster-service HTTP client
+	healthSrv.SetHandler("/api/v1/sessions/terminate", server.GetTerminateSessionHandler())
+
 	// Канал для ошибок серверов
 	serverErrors := make(chan error, 2)
 
